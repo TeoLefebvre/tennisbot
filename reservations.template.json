@@ -1,0 +1,12 @@
+[
+  {
+    "partner": {
+      "firstname": "John",
+      "lastname": "Doe",
+      "mail": "johndoe@email.com"
+    },
+    "date": "19/03/2024",
+    "hour": 17,
+    "court": "int"
+  }
+]

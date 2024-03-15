@@ -6,6 +6,7 @@ A utiliser avec un cron job pour le lancer tous les jours à 7h30.
 ## Utilisation
 
 Il faut d'abord créer un fichier `.env` sur la base du fichier `.env.template` et remplir les informations. 
+De même, il faut créer un fichier `reservations.json` sur la base du fichier `reservations.template.json` et ajouter autant de réservation que l'on veut à la liste. L'adresse mail du partenaire est optionnelle.
 
 Le mode _DEBUG_ est activé quand la variable d'environnement `DEBUG` vaut 1. Dans ce cas là, les informations et les erreurs sont affichées en console plutôt, sinon elles sont enregistrés dans les fichiers `app.log` et `error.log`.
 

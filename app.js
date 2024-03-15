@@ -185,7 +185,7 @@ async function book(reservation) {
     log(0, 0, message)
     let subject = "TennisBot - échec de la réservation"
     notification(process.env.MAIL_ADDRESS, subject, message)
-    if (!DEBUG)
+    if (!DEBUG && reservation.partner.mail)
       notification(reservation.partner.mail, subject, message)
   }
 }
