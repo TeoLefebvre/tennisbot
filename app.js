@@ -93,8 +93,12 @@ async function book(reservation) {
         await click_on_selector(page, "#CHAMP_TYPE_1-menu > li:nth-child(2)") // désigner un partenaire
         
         let [lastname, firstname] = reservation.partenaire.split(" ")
-        page.keyboard.type(lastname)
-        
+        let partner_input_sel = ".ui-autocomplete-input"
+        await page.waitForSelector(partner_input_sel)
+        await page.focus(partner_input_sel)
+        await page.keyboard.type(lastname)
+
+        await delay(1)
         let count = await page.evaluate((partenaire) => {
           let ul = document.getElementById("ui-id-1")
           let propositions = ul.children[0].children
@@ -111,17 +115,21 @@ async function book(reservation) {
           page.keyboard.press("ArrowDown") // descend pour sélectionner le bon nom
         page.keyboard.press("Enter") // sélectionne le nom
 
-        // await click_on_selector(page, "button.ui-button:nth-child(6)") // valider la réservation
+        await click_on_selector(page, "button.ui-button:nth-child(6)") // valider la réservation
 
         booked = true
         break
       }
     }
+    if (!booked) {
+      console.log("Pas de terrains libres")
+    }
     
   } catch (error) {
+    console.log("Une erreure s'est produite")
     console.error(error)
   } finally {
-    await delay(30)
+    await delay(10)
     await browser.close()
   }
 }
