@@ -73,9 +73,14 @@ function delay(time) {
   })
 }
 
+
 async function book(reservation) {
   let booked = false
-  const browser = await puppeteer.launch({headless: !DEBUG})
+  const browser_options = {
+    headless: !DEBUG,
+    executablePath: process.env.BROWSER_PATH ? process.env.BROWSER_PATH : undefined
+  }
+  const browser = await puppeteer.launch(browser_options)
   try {
     const page = await browser.newPage()
     page.setDefaultTimeout(10_000) // en milisecondes
