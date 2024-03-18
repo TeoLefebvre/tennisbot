@@ -76,6 +76,7 @@ function delay(time) {
 
 async function book(reservation) {
   let booked = false
+  let nb_available_court = COURTS[reservation.court].length
   const browser_options = {
     headless: !DEBUG,
     executablePath: process.env.BROWSER_PATH ? process.env.BROWSER_PATH : undefined
@@ -85,14 +86,9 @@ async function book(reservation) {
     const page = await browser.newPage()
     page.setDefaultTimeout(10_000) // en milisecondes
 
-    try {
-      await page.goto("https://www.tennisblr.com/")
-      await click_on_selector(page, "#menu-item-629") // menu réservation
-    } catch (error) {
-      log(0, 1, "La page n'a pas chargée.")
-      log(1, 2, error)
-    }
-
+    await page.goto("https://www.tennisblr.com/")
+    await click_on_selector(page, "#menu-item-629") // menu réservation
+    
     const username_input_sel = ".bloc > p:nth-child(1) > input"
     await page.waitForSelector(username_input_sel)
     await page.focus(username_input_sel)
@@ -112,15 +108,17 @@ async function book(reservation) {
     page.setDefaultTimeout(2_000) // en milisecondes
     for (let court of COURTS[reservation.court]) {
       let free = true
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 4; i++) { // vérifie que tous les quarts d'heures sont libres
         let selector = compute_selector(reservation.hour, i, court)
         try {
           await page.waitForSelector(selector, {visible: true})
         } catch (error) {
           free = false
+          nb_available_court -= 1
           break
         }
       }
+
       if (!free) {
         log(0, 0, `Terrain ${court} indisponible.`)
       }
@@ -179,20 +177,26 @@ async function book(reservation) {
   } catch (error) {
     log(0, 1, "Une erreur s'est produite.")
     log(1, 2, error)
+    let subject = "TennisBot - échec de la réservation"
+    let message = `Une erreur s'est produite.\nLa réservation pour le ${reservation.date} à ${reservation.hour}h a échoué.\nIl faut réserver manuellement.`
+    notification(process.env.MAIL_ADDRESS, subject, message)
+    if (!DEBUG && reservation.partner.mail)
+      notification(reservation.partner.mail, subject, message)
   } finally {
     await browser.close()
   }
 
-  if (booked) {
+  if (booked)
     log(0, 0, "Terrain réservé.")
-  } else {
-    let message = `La réservation pour le ${reservation.date} à ${reservation.hour}h a échoué.\nIl faut réserver manuellement.`
-    log(0, 0, message)
-    let subject = "TennisBot - échec de la réservation"
+  else if (nb_available_court === 0) {
+    log(0, 0, "Aucun terrain disponible.")
+    let subject = "TennisBot - terrains indisponibles"
+    let message = `Impossible de réserver pour le ${reservation.date} à ${reservation.hour}h.\nTous les terrains sont déjà occupés.`
     notification(process.env.MAIL_ADDRESS, subject, message)
     if (!DEBUG && reservation.partner.mail)
       notification(reservation.partner.mail, subject, message)
-  }
+  } else
+    log(0, 0, "Echec de la réservation")
 }
 
 function check_reservation() {
